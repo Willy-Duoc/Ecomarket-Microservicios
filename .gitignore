@@ -1,0 +1,13 @@
+# Archivo de defensa PRIVADO (no se sube a GitHub)
+DEFENSA-PRIVADA.md
+
+# Build
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# SO
+.DS_Store
