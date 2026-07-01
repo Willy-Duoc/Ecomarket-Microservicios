@@ -2,10 +2,12 @@
 
 Plataforma de e-commerce de productos ecológicos y sostenibles, construida con una
 arquitectura de **microservicios** sobre Spring Boot. Este repositorio contiene dos
-servicios independientes que se comunican por REST:
+microservicios de negocio (cada uno dueño de sus datos) y un **API Gateway** que
+actúa como punto de entrada único:
 
-| Microservicio | Puerto | Responsabilidad | Base de datos |
+| Servicio | Puerto | Responsabilidad | Base de datos |
 |---|---|---|---|
+| **Api-Gateway** | 8080 | Punto de entrada único; enruta las peticiones a los microservicios | — (sin BD) |
 | **Catalogo-Inventario** | 8081 | Catálogo de productos y gestión de stock | `ecomarket_catalogo` |
 | **Carrito-Compra** | 8082 | Carrito de compras, pedidos e historial | `ecomarket_carrito` |
 
@@ -21,7 +23,17 @@ funcionando aunque el catálogo esté caído.
 
 ### 1.1 Comunicación entre servicios
 
+El cliente (Postman) habla **solo con el API Gateway** (8080), que reenvía cada
+petición al microservicio correcto según el prefijo de la ruta. Los microservicios
+se comunican entre sí por REST.
+
 ```
+                    ┌───────────────────────────┐
+   Cliente ───────► │      API Gateway (8080)    │
+   (Postman)        │  /api/catalogo,/inventario │──► Catalogo-Inventario (8081)
+                    │  /api/carrito,/compras      │──► Carrito-Compra (8082)
+                    └───────────────────────────┘
+
                          HTTP / REST (RestClient)
    ┌─────────────────────┐   GET  /api/catalogo/{id}    ┌──────────────────────────┐
    │                     │ ───────────────────────────► │                          │
@@ -36,6 +48,11 @@ funcionando aunque el catálogo esté caído.
      │ carrito        │                                      │ catalogo         │
      └────────────────┘                                      └──────────────────┘
 ```
+
+El **Gateway** desacopla al cliente de las direcciones internas: no necesita conocer
+los puertos 8081/8082, solo el 8080. Es un enrutador REST ligero (proxy) hecho con
+Spring MVC; en producción se reemplazaría por Spring Cloud Gateway, pero cumple el
+mismo rol de *punto de entrada único*.
 
 El Catálogo no conoce al Carrito (no depende de él). El Carrito sí depende del
 Catálogo, pero a través de una interfaz (`CatalogoClient`) que aísla el dominio de
@@ -63,6 +80,14 @@ Exception    Excepciones de dominio + GlobalExceptionHandler (códigos HTTP unif
 Ecomarket-Microservicios/
 │
 ├── README.md
+├── POSTMAN.md                           # Guía detallada de pruebas en Postman
+├── EcoMarket.postman_collection.json    # Colección importable en Postman (vía gateway)
+│
+├── Api-Gateway/                         # API Gateway (puerto 8080)
+│   ├── pom.xml
+│   └── src/main/java/com/ecomarket/gateway/
+│       ├── ApiGatewayApplication.java   # Clase main (arranque)
+│       └── GatewayController.java        # Enruta /api/** a los microservicios
 │
 ├── Catalogo-Inventario/                 # Microservicio 1 (puerto 8081)
 │   ├── pom.xml
@@ -274,7 +299,8 @@ Para saltar las pruebas durante el empaquetado: `./mvnw clean package -DskipTest
 
 ## 5. Cómo ejecutar el proyecto
 
-El orden importa: **primero el Catálogo**, luego el Carrito (el Carrito le consulta al arrancar el flujo de compra).
+El orden importa: **primero el Catálogo**, luego el Carrito y por último el Gateway
+(cada uno en su propia terminal).
 
 **1) Arrancar el Catálogo (puerto 8081):**
 ```bash
@@ -290,11 +316,23 @@ cd Carrito-Compra
 ./mvnw spring-boot:run
 ```
 
-Alternativamente, tras `./mvnw clean package`, puedes ejecutar el JAR directamente:
+**3) Arrancar el API Gateway (puerto 8080), en otra terminal:**
+```bash
+cd Api-Gateway
+./mvnw spring-boot:run
+```
+Verifica que está arriba abriendo `http://localhost:8080/` (muestra las rutas).
+A partir de aquí, todas las peticiones se hacen contra el **8080** y el gateway las
+reenvía al microservicio correcto.
+
+Alternativamente, tras `./mvnw clean package`, puedes ejecutar los JAR directamente:
 ```bash
 java -jar target/Catalogo-Inventario-0.0.1-SNAPSHOT.jar
 java -jar target/Carrito-Compra-0.0.1-SNAPSHOT.jar
+java -jar target/Api-Gateway-0.0.1-SNAPSHOT.jar
 ```
+
+> El Gateway no necesita MySQL (es *stateless*). Los microservicios sí.
 
 ### 5.1 Endpoints principales
 
@@ -346,6 +384,22 @@ curl -X POST http://localhost:8082/api/compras/confirmar \
 # Ver el historial de pedidos
 curl http://localhost:8082/api/compras/historial/1
 ```
+
+> Los mismos endpoints funcionan a través del **gateway** cambiando el host y puerto
+> por `http://localhost:8080` (p. ej. `GET http://localhost:8080/api/catalogo`).
+
+### 5.3 Pruebas en Postman (vía gateway)
+
+Con los tres servicios arriba, importa la colección en Postman:
+
+1. **File ▸ Import** y selecciona `EcoMarket.postman_collection.json`.
+2. La colección ya trae la variable `gateway = http://localhost:8080` y datos de prueba.
+3. Abre la carpeta **"5. Flujo E2E"** y ejecuta las peticiones en orden: demuestra cómo,
+   al agregar al carrito, el stock baja en el catálogo, y cómo al cancelar el pedido se
+   restaura — todo a través del gateway.
+
+La guía paso a paso de cada endpoint (con cuerpos y respuestas de ejemplo) está en
+**[POSTMAN.md](POSTMAN.md)**.
 
 ---
 
@@ -415,5 +469,6 @@ cd ../Carrito-Compra
 
 ## 8. Tecnologías
 
-`Java 21` · `Spring Boot 4.1.0` · `Spring Web MVC` · `Spring Data JPA` · `Hibernate` ·
-`Bean Validation` · `Lombok` · `MySQL` · `H2` · `JUnit 5` · `Mockito` · `AssertJ` · `Maven`
+`Java 21` · `Spring Boot 4.1.0` · `Spring Web MVC` · `RestClient` · `API Gateway (proxy REST)` ·
+`Spring Data JPA` · `Hibernate` · `Bean Validation` · `Lombok` · `MySQL` · `H2` ·
+`JUnit 5` · `Mockito` · `AssertJ` · `MockMvc` · `Maven`

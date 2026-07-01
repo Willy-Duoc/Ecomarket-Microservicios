@@ -57,7 +57,6 @@ class CarritoServiceCoberturaTest {
     void obtenerCarrito_existente_devuelveDTO() {
         Carrito carrito = carritoConItem();
         when(carritoRepository.findByClienteIdAndActivoTrue(1L)).thenReturn(Optional.of(carrito));
-        when(carritoRepository.save(any(Carrito.class))).thenAnswer(inv -> inv.getArgument(0));
 
         CarritoResponseDTO resp = carritoService.obtenerCarrito(1L);
 

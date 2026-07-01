@@ -11,8 +11,10 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class RestClientConfig {
     
+    // Nombre del bean distinto al del componente CatalogoRestClient para evitar
+    // el choque de nombres (ambos se llamarian 'catalogoRestClient').
     @Bean
-    public RestClient catalogoRestClient(@Value("${catalogo.base-url}") String baseUrl) {
+    public RestClient restClientCatalogo(@Value("${catalogo.base-url}") String baseUrl) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(2)); // tiempo máximo para conectar
         factory.setReadTimeout(Duration.ofSeconds(3));     // tiempo máximo esperando respuesta

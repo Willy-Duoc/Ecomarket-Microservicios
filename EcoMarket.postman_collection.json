@@ -1,0 +1,197 @@
+{
+  "info": {
+    "name": "EcoMarket - API Gateway",
+    "_postman_id": "ecomarket-gateway-collection",
+    "description": "Coleccion de prueba de EcoMarket. Todas las peticiones pasan por el API Gateway (http://localhost:8080), que enruta a Catalogo-Inventario (8081) y Carrito-Compra (8082). Importa este archivo en Postman: File > Import. La carpeta 'Flujo E2E' demuestra la interaccion entre ambos microservicios.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "gateway", "value": "http://localhost:8080" },
+    { "key": "clienteId", "value": "1" },
+    { "key": "productoId", "value": "5" }
+  ],
+  "item": [
+    {
+      "name": "0. Gateway",
+      "item": [
+        {
+          "name": "Info del gateway",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/" }
+        }
+      ]
+    },
+    {
+      "name": "1. Catalogo (via gateway)",
+      "item": [
+        {
+          "name": "Listar todos los productos",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/catalogo" }
+        },
+        {
+          "name": "Obtener producto por id",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/catalogo/{{productoId}}" }
+        },
+        {
+          "name": "Buscar por nombre",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/catalogo/buscar?nombre=solar" }
+        },
+        {
+          "name": "Filtrar por categoria",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/catalogo/categoria/MASCOTAS" }
+        },
+        {
+          "name": "Crear producto",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"ALI-99\",\n  \"nombre\": \"Te Matcha Organico\",\n  \"descripcion\": \"Lata 100g\",\n  \"categoria\": \"ALIMENTOS_ORGANICOS\",\n  \"precio\": 5990.00,\n  \"stock\": 40,\n  \"imagenUrl\": \"https://ecomarket.cl/img/ali-99.jpg\"\n}"
+            },
+            "url": "{{gateway}}/api/catalogo"
+          }
+        },
+        {
+          "name": "Actualizar producto",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"ALI-01\",\n  \"nombre\": \"Quinoa Organica Premium\",\n  \"descripcion\": \"Saco 1kg\",\n  \"categoria\": \"ALIMENTOS_ORGANICOS\",\n  \"precio\": 2490.00,\n  \"stock\": 120\n}"
+            },
+            "url": "{{gateway}}/api/catalogo/1"
+          }
+        },
+        {
+          "name": "Eliminar producto",
+          "request": { "method": "DELETE", "header": [], "url": "{{gateway}}/api/catalogo/101" }
+        }
+      ]
+    },
+    {
+      "name": "2. Inventario (via gateway)",
+      "item": [
+        {
+          "name": "Verificar disponibilidad",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/inventario/{{productoId}}/disponibilidad?cantidad=2" }
+        },
+        {
+          "name": "Reservar stock",
+          "request": { "method": "POST", "header": [], "url": "{{gateway}}/api/inventario/{{productoId}}/reservar?cantidad=2" }
+        },
+        {
+          "name": "Liberar stock",
+          "request": { "method": "POST", "header": [], "url": "{{gateway}}/api/inventario/{{productoId}}/liberar?cantidad=2" }
+        },
+        {
+          "name": "Confirmar stock",
+          "request": { "method": "POST", "header": [], "url": "{{gateway}}/api/inventario/{{productoId}}/confirmar?cantidad=2" }
+        },
+        {
+          "name": "Ajustar stock (gerente)",
+          "request": { "method": "PUT", "header": [], "url": "{{gateway}}/api/inventario/{{productoId}}/stock?nuevaCantidad=200" }
+        }
+      ]
+    },
+    {
+      "name": "3. Carrito (via gateway)",
+      "item": [
+        {
+          "name": "Ver / crear carrito del cliente",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/carrito/{{clienteId}}" }
+        },
+        {
+          "name": "Agregar producto al carrito",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": 1,\n  \"productoId\": 5,\n  \"cantidad\": 2\n}"
+            },
+            "url": "{{gateway}}/api/carrito/items"
+          }
+        },
+        {
+          "name": "Eliminar item del carrito",
+          "request": { "method": "DELETE", "header": [], "url": "{{gateway}}/api/carrito/{{clienteId}}/items/1" }
+        },
+        {
+          "name": "Vaciar carrito",
+          "request": { "method": "DELETE", "header": [], "url": "{{gateway}}/api/carrito/{{clienteId}}" }
+        }
+      ]
+    },
+    {
+      "name": "4. Compras (via gateway)",
+      "item": [
+        {
+          "name": "Confirmar compra",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": 1\n}" },
+            "url": "{{gateway}}/api/compras/confirmar"
+          }
+        },
+        {
+          "name": "Historial de pedidos",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/compras/historial/{{clienteId}}" }
+        },
+        {
+          "name": "Cancelar pedido",
+          "request": { "method": "POST", "header": [], "url": "{{gateway}}/api/compras/1/cancelar" }
+        }
+      ]
+    },
+    {
+      "name": "5. Flujo E2E (demostracion de interaccion)",
+      "description": "Ejecutar en orden. Muestra como el carrito reserva/libera stock en el catalogo a traves del gateway.",
+      "item": [
+        {
+          "name": "Paso 1 - Ver stock inicial del producto 5",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/catalogo/5" }
+        },
+        {
+          "name": "Paso 2 - Agregar 2 unidades al carrito (reserva stock)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": 1,\n  \"productoId\": 5,\n  \"cantidad\": 2\n}" },
+            "url": "{{gateway}}/api/carrito/items"
+          }
+        },
+        {
+          "name": "Paso 3 - Ver stock (bajo a 98)",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/catalogo/5" }
+        },
+        {
+          "name": "Paso 4 - Ver carrito y total",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/carrito/1" }
+        },
+        {
+          "name": "Paso 5 - Confirmar compra (genera pedido)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": 1\n}" },
+            "url": "{{gateway}}/api/compras/confirmar"
+          }
+        },
+        {
+          "name": "Paso 6 - Historial del cliente",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/compras/historial/1" }
+        },
+        {
+          "name": "Paso 7 - Cancelar pedido 1 (restaura stock)",
+          "request": { "method": "POST", "header": [], "url": "{{gateway}}/api/compras/1/cancelar" }
+        },
+        {
+          "name": "Paso 8 - Ver stock (vuelve a 100)",
+          "request": { "method": "GET", "header": [], "url": "{{gateway}}/api/catalogo/5" }
+        }
+      ]
+    }
+  ]
+}

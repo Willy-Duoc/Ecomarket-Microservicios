@@ -1,7 +1,10 @@
 package com.ecomarket.carritocompra.controller;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -11,15 +14,17 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.ecomarket.carritocompra.dto.CarritoResponseDTO;
+import com.ecomarket.carritocompra.dto.ItemCarritoResponseDTO;
 import com.ecomarket.carritocompra.service.CarritoService;
 
 /**
  * TIPO 2 - Cobertura de los endpoints restantes de CarritoController:
- * eliminar item y vaciar carrito.
+ * agregar (camino feliz 200), eliminar item y vaciar carrito.
  */
 @WebMvcTest(CarritoController.class)
 class CarritoControllerCoberturaTest {
@@ -31,6 +36,24 @@ class CarritoControllerCoberturaTest {
 
     private CarritoResponseDTO carritoVacio() {
         return new CarritoResponseDTO(1L, 1L, true, List.of(), BigDecimal.ZERO);
+    }
+
+    @Test
+    void agregar_valido_devuelve200() throws Exception {
+        CarritoResponseDTO conItem = new CarritoResponseDTO(1L, 1L, true,
+                List.of(new ItemCarritoResponseDTO(1L, 5L, "Arroz", new BigDecimal("2590.00"),
+                        2, new BigDecimal("5180.00"))),
+                new BigDecimal("5180.00"));
+        when(carritoService.agregarProducto(anyLong(), anyLong(), anyInt())).thenReturn(conItem);
+
+        mockMvc.perform(post("/api/carrito/items")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"clienteId":1,"productoId":5,"cantidad":2}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(5180.00))
+                .andExpect(jsonPath("$.items[0].nombreProducto").value("Arroz"));
     }
 
     @Test

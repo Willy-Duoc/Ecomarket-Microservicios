@@ -126,4 +126,30 @@ class ProductoServiceCoberturaTest {
         assertThatThrownBy(() -> productoService.actualizar(9L, request("ALI-01")))
                 .isInstanceOf(RecursoNoEncontradoException.class);
     }
+
+    @Test
+    void actualizar_cambioSkuHaciaUnoLibre_guarda() {
+        Producto existente = entidad(1L, "OLD-99");
+        ProductoRequestDTO dto = request("NEW-01"); // sku distinto y NO usado
+
+        when(productoRepository.findById(1L)).thenReturn(Optional.of(existente));
+        when(productoRepository.existsBySku("NEW-01")).thenReturn(false);
+        when(productoRepository.save(existente)).thenReturn(existente);
+        when(productoMapper.aResponse(existente)).thenReturn(responseDummy());
+
+        productoService.actualizar(1L, dto);
+
+        verify(productoMapper).copiarSobre(existente, dto);
+        verify(productoRepository).save(existente);
+    }
+
+    @Test
+    void eliminar_existente_borraLaEntidad() {
+        Producto existente = entidad(1L, "ALI-01");
+        when(productoRepository.findById(1L)).thenReturn(Optional.of(existente));
+
+        productoService.eliminar(1L);
+
+        verify(productoRepository).delete(existente);
+    }
 }

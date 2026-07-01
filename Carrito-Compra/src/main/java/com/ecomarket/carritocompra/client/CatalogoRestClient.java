@@ -15,8 +15,8 @@ public class CatalogoRestClient implements CatalogoClient {
 
     private final RestClient restClient;
 
-    public CatalogoRestClient(RestClient catalogoRestClient) {
-        this.restClient = catalogoRestClient;
+    public CatalogoRestClient(RestClient restClientCatalogo) {
+        this.restClient = restClientCatalogo;
     }
 
     @Override
