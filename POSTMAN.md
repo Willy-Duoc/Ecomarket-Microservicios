@@ -3,18 +3,18 @@
 **Autor:** Williams Contreras · **Asignatura:** Desarrollo Fullstack 1
 
 Instructivo paso a paso para probar todos los endpoints con **Postman**.
-Lo recomendado es hacer **todo a través del API Gateway** (`http://localhost:8081`),
+Lo recomendado es hacer **todo a través del API Gateway** (`http://localhost:8085`),
 que enruta a cada microservicio. También puedes importar la colección
 `EcoMarket.postman_collection.json` (File ▸ Import), que ya trae todo configurado.
 
 | Servicio | Base URL directa | Vía gateway (recomendado) |
 |---|---|---|
-| **Api-Gateway** | `http://localhost:8081` | — |
-| **Inicio-Sesion** | `http://localhost:8082` | `{{gateway}}/api/v1/auth` |
-| **Carrito-Compra** | `http://localhost:8083` | `{{gateway}}/api/v1/carritos` y `/api/v1/compras` |
-| **Catalogo-Inventario** | `http://localhost:8084` | `{{gateway}}/api/v1/productos` y `/api/v1/inventario` |
+| **Api-Gateway** | `http://localhost:8085` | — |
+| **Inicio-Sesion** | `http://localhost:8086` | `{{gateway}}/api/v1/auth` |
+| **Carrito-Compra** | `http://localhost:8087` | `{{gateway}}/api/v1/carritos` y `/api/v1/compras` |
+| **Catalogo-Inventario** | `http://localhost:8088` | `{{gateway}}/api/v1/productos` y `/api/v1/inventario` |
 
-> Todos los ejemplos usan `{{gateway}}` (puerto 8081). Si prefieres, puedes llamar
+> Todos los ejemplos usan `{{gateway}}` (puerto 8085). Si prefieres, puedes llamar
 > a cada servicio directamente en su puerto: la ruta `/api/v1/...` es la misma.
 
 ---
@@ -24,10 +24,10 @@ que enruta a cada microservicio. También puedes importar la colección
 1. **Levanta MySQL** (XAMPP ▸ Start MySQL).
 2. **Arranca los 4 servicios** (una terminal cada uno, en este orden):
    ```bash
-   cd Catalogo-Inventario && ./mvnw spring-boot:run   # 8084 (siembra 100 productos)
-   cd Inicio-Sesion       && ./mvnw spring-boot:run   # 8082 (siembra 5 clientes)
-   cd Carrito-Compra      && ./mvnw spring-boot:run   # 8083
-   cd Api-Gateway         && ./mvnw spring-boot:run   # 8081
+   cd Catalogo-Inventario && ./mvnw spring-boot:run   # 8088 (siembra 100 productos)
+   cd Inicio-Sesion       && ./mvnw spring-boot:run   # 8086 (siembra 5 clientes)
+   cd Carrito-Compra      && ./mvnw spring-boot:run   # 8087
+   cd Api-Gateway         && ./mvnw spring-boot:run   # 8085
    ```
 3. Abre **Postman** e importa `EcoMarket.postman_collection.json`.
 
@@ -47,7 +47,7 @@ La colección ya define estas variables (o créalas en un *Environment*):
 
 | Variable | Valor |
 |---|---|
-| `gateway` | `http://localhost:8081` |
+| `gateway` | `http://localhost:8085` |
 
 > En las peticiones con cuerpo (POST/PUT), usa **Body ▸ raw ▸ JSON**
 > (Postman añade solo el header `Content-Type: application/json`).
@@ -248,9 +248,9 @@ Además de Postman, cada microservicio expone su documentación interactiva
 
 | Servicio | Swagger UI | Especificación JSON |
 |---|---|---|
-| Inicio-Sesion | http://localhost:8082/swagger-ui.html | http://localhost:8082/v3/api-docs |
-| Carrito-Compra | http://localhost:8083/swagger-ui.html | http://localhost:8083/v3/api-docs |
-| Catalogo-Inventario | http://localhost:8084/swagger-ui.html | http://localhost:8084/v3/api-docs |
+| Inicio-Sesion | http://localhost:8086/swagger-ui.html | http://localhost:8086/v3/api-docs |
+| Carrito-Compra | http://localhost:8087/swagger-ui.html | http://localhost:8087/v3/api-docs |
+| Catalogo-Inventario | http://localhost:8088/swagger-ui.html | http://localhost:8088/v3/api-docs |
 
 Desde la UI puedes ver la descripción de cada endpoint, sus parámetros y el esquema
 de request/response, y **probarlos** con *Try it out*.

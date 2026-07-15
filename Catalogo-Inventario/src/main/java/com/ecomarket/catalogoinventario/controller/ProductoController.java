@@ -23,7 +23,7 @@ import com.ecomarket.catalogoinventario.service.ProductoService;
 
 import jakarta.validation.Valid;
 
-// API del catalogo de productos. Se accede via gateway: http://localhost:8081/api/v1/productos
+// API del catalogo de productos. Se accede via gateway: http://localhost:8085/api/v1/productos
 // GET lista/busca, POST crea, PUT actualiza, DELETE elimina (tambien lo invoca
 // Carrito-Compra al confirmar una compra).
 @Tag(name = "Productos", description = "Catálogo de productos ecológicos: CRUD y búsqueda")

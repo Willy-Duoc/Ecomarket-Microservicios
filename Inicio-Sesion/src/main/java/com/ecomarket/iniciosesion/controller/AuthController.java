@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
 
 /**
  * API REST de autenticacion de clientes.
- * Se accede via API Gateway: http://localhost:8081/api/v1/auth/...
+ * Se accede via API Gateway: http://localhost:8085/api/v1/auth/...
  */
 @Tag(name = "Autenticación", description = "Login, logout y gestión de credenciales de clientes con JWT")
 @RestController

@@ -13,7 +13,7 @@ class RestClientConfigTest {
 
     @Test
     void catalogoRestClient_seConstruye() {
-        RestClient restClient = new RestClientConfig().restClientCatalogo("http://localhost:8081");
+        RestClient restClient = new RestClientConfig().restClientCatalogo("http://localhost:8085");
         assertThat(restClient).isNotNull();
     }
 }

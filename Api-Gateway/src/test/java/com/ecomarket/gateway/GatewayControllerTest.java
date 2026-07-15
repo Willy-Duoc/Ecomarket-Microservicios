@@ -36,9 +36,9 @@ class GatewayControllerTest {
         server = MockRestServiceServer.bindTo(builder).build();
         GatewayController controller = new GatewayController(
                 builder.build(),
-                "http://localhost:8084",   // catalogo
-                "http://localhost:8083",   // carrito
-                "http://localhost:8082");  // inicio-sesion (auth)
+                "http://localhost:8088",   // catalogo
+                "http://localhost:8087",   // carrito
+                "http://localhost:8086");  // inicio-sesion (auth)
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
@@ -51,7 +51,7 @@ class GatewayControllerTest {
 
     @Test
     void enruta_catalogoGet_alCatalogo8084() throws Exception {
-        server.expect(requestTo("http://localhost:8084/api/v1/productos/5"))
+        server.expect(requestTo("http://localhost:8088/api/v1/productos/5"))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\"id\":5,\"nombre\":\"Arroz\"}", MediaType.APPLICATION_JSON));
 
@@ -64,7 +64,7 @@ class GatewayControllerTest {
 
     @Test
     void enruta_inventarioGet_conQueryString() throws Exception {
-        server.expect(requestTo("http://localhost:8084/api/v1/inventario/5/disponibilidad?cantidad=2"))
+        server.expect(requestTo("http://localhost:8088/api/v1/inventario/5/disponibilidad?cantidad=2"))
                 .andRespond(withSuccess("{\"disponible\":true}", MediaType.APPLICATION_JSON));
 
         mockMvc.perform(get("/api/v1/inventario/5/disponibilidad?cantidad=2"))
@@ -74,7 +74,7 @@ class GatewayControllerTest {
 
     @Test
     void enruta_carritoPost_conCuerpo_alCarrito8083() throws Exception {
-        server.expect(requestTo("http://localhost:8083/api/v1/carritos/items"))
+        server.expect(requestTo("http://localhost:8087/api/v1/carritos/items"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\"id\":1}", MediaType.APPLICATION_JSON));
 
@@ -88,7 +88,7 @@ class GatewayControllerTest {
 
     @Test
     void enruta_comprasPost_alCarrito8083() throws Exception {
-        server.expect(requestTo("http://localhost:8083/api/v1/compras/confirmar"))
+        server.expect(requestTo("http://localhost:8087/api/v1/compras/confirmar"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\"estado\":\"CONFIRMADO\"}", MediaType.APPLICATION_JSON));
 
@@ -100,7 +100,7 @@ class GatewayControllerTest {
 
     @Test
     void enruta_propagaErrorDownstream_sinContentType() throws Exception {
-        server.expect(requestTo("http://localhost:8084/api/v1/productos/999"))
+        server.expect(requestTo("http://localhost:8088/api/v1/productos/999"))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
         mockMvc.perform(get("/api/v1/productos/999"))
@@ -109,7 +109,7 @@ class GatewayControllerTest {
 
     @Test
     void enruta_authPost_alInicioSesion8082() throws Exception {
-        server.expect(requestTo("http://localhost:8082/api/v1/auth/login"))
+        server.expect(requestTo("http://localhost:8086/api/v1/auth/login"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\"token\":\"jwt\"}", MediaType.APPLICATION_JSON));
 

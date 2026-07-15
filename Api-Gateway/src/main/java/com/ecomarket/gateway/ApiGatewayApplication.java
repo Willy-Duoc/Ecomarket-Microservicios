@@ -6,11 +6,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * API Gateway de EcoMarket.
  *
- * <p>Punto de entrada unico (puerto 8080) que reenvia las peticiones a los
+ * <p>Punto de entrada unico (puerto 8085) que reenvia las peticiones a los
  * microservicios segun el prefijo de la ruta:
  * <ul>
- *   <li>{@code /api/v1/productos/**} y {@code /api/v1/inventario/**} -> Catalogo-Inventario (8081)</li>
- *   <li>{@code /api/v1/carritos/**} y {@code /api/v1/compras/**} -> Carrito-Compra (8082)</li>
+ *   <li>{@code /api/v1/productos/**} y {@code /api/v1/inventario/**} -> Catalogo-Inventario (8088)</li>
+ *   <li>{@code /api/v1/carritos/**} y {@code /api/v1/compras/**} -> Carrito-Compra (8087)</li>
  * </ul>
  *
  * <p>Es un gateway de enrutamiento ligero (proxy REST) construido con Spring MVC

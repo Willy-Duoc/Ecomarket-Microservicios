@@ -2,11 +2,11 @@
   "info": {
     "name": "EcoMarket - API Gateway",
     "_postman_id": "ecomarket-gateway-collection",
-    "description": "Coleccion de prueba de EcoMarket. Todas las peticiones pasan por el API Gateway (http://localhost:8081), que enruta a Inicio-Sesion (8082), Carrito-Compra (8083) y Catalogo-Inventario (8084). Importa este archivo en Postman: File > Import. Clientes de prueba sembrados (contrasena: ecomarket123): ana.torres@ecomarket.cl, bruno.rojas@ecomarket.cl, carla.munoz@ecomarket.cl, diego.perez@ecomarket.cl (ACTIVOS) y elena.soto@ecomarket.cl (INACTIVO, para probar el 403).",
+    "description": "Coleccion de prueba de EcoMarket. Todas las peticiones pasan por el API Gateway (http://localhost:8085), que enruta a Inicio-Sesion (8086), Carrito-Compra (8087) y Catalogo-Inventario (8088). Importa este archivo en Postman: File > Import. Clientes de prueba sembrados (contrasena: ecomarket123): ana.torres@ecomarket.cl, bruno.rojas@ecomarket.cl, carla.munoz@ecomarket.cl, diego.perez@ecomarket.cl (ACTIVOS) y elena.soto@ecomarket.cl (INACTIVO, para probar el 403).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "gateway", "value": "http://localhost:8081" },
+    { "key": "gateway", "value": "http://localhost:8085" },
     { "key": "clienteId", "value": "1" },
     { "key": "productoId", "value": "5" },
     { "key": "token", "value": "" }

@@ -36,14 +36,14 @@ class CatalogoRestClientTest {
 
     @BeforeEach
     void setUp() {
-        RestClient.Builder builder = RestClient.builder().baseUrl("http://localhost:8084");
+        RestClient.Builder builder = RestClient.builder().baseUrl("http://localhost:8088");
         server = MockRestServiceServer.bindTo(builder).build();
         client = new CatalogoRestClient(builder.build());
     }
 
     @Test
     void obtenerProducto_respuesta200_devuelveDTO() {
-        server.expect(requestTo("http://localhost:8084/api/v1/productos/5"))
+        server.expect(requestTo("http://localhost:8088/api/v1/productos/5"))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(
                         "{\"id\":5,\"nombre\":\"Arroz\",\"precio\":2740.00,\"stock\":100,\"estado\":\"DISPONIBLE\"}",
@@ -58,7 +58,7 @@ class CatalogoRestClientTest {
 
     @Test
     void obtenerProducto_respuesta404_lanzaRecursoNoEncontrado() {
-        server.expect(requestTo("http://localhost:8084/api/v1/productos/99"))
+        server.expect(requestTo("http://localhost:8088/api/v1/productos/99"))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
         assertThatThrownBy(() -> client.obtenerProducto(99L))
@@ -67,7 +67,7 @@ class CatalogoRestClientTest {
 
     @Test
     void obtenerProducto_errorDeConexion_lanzaCatalogoNoDisponible() {
-        server.expect(requestTo("http://localhost:8084/api/v1/productos/5"))
+        server.expect(requestTo("http://localhost:8088/api/v1/productos/5"))
                 .andRespond(withException(new IOException("conexion rechazada")));
 
         assertThatThrownBy(() -> client.obtenerProducto(5L))
@@ -76,7 +76,7 @@ class CatalogoRestClientTest {
 
     @Test
     void reservar_respuesta409_lanzaStockInsuficiente() {
-        server.expect(requestTo("http://localhost:8084/api/v1/inventario/5/reservar?cantidad=2"))
+        server.expect(requestTo("http://localhost:8088/api/v1/inventario/5/reservar?cantidad=2"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withStatus(HttpStatus.CONFLICT));
 
@@ -86,7 +86,7 @@ class CatalogoRestClientTest {
 
     @Test
     void verificarDisponibilidad_respuesta200_devuelveTrue() {
-        server.expect(requestTo("http://localhost:8084/api/v1/inventario/5/disponibilidad?cantidad=2"))
+        server.expect(requestTo("http://localhost:8088/api/v1/inventario/5/disponibilidad?cantidad=2"))
                 .andRespond(withSuccess("{\"disponible\":true}", MediaType.APPLICATION_JSON));
 
         assertThat(client.verificarDisponibilidad(5L, 2)).isTrue();

@@ -93,15 +93,15 @@ public class GatewayController {
 
     /** Elige el microservicio destino segun el prefijo de la ruta. */
     private String resolverDestino(String uri) {
-        // /api/v1/auth/** -> Inicio-Sesion (8082)
+        // /api/v1/auth/** -> Inicio-Sesion (8086)
         if (uri.startsWith("/api/v1/auth")) {
             return authUrl;
         }
-        // /api/v1/productos/** y /api/v1/inventario/** -> Catalogo-Inventario (8084)
+        // /api/v1/productos/** y /api/v1/inventario/** -> Catalogo-Inventario (8088)
         if (uri.startsWith("/api/v1/productos") || uri.startsWith("/api/v1/inventario")) {
             return catalogoUrl;
         }
-        // /api/v1/carritos/** y /api/v1/compras/** -> Carrito-Compra (8083)
+        // /api/v1/carritos/** y /api/v1/compras/** -> Carrito-Compra (8087)
         if (uri.startsWith("/api/v1/carritos") || uri.startsWith("/api/v1/compras")) {
             return carritoUrl;
         }

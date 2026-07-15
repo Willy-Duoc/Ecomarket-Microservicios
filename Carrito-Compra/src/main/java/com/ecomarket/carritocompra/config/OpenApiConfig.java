@@ -12,8 +12,8 @@ import io.swagger.v3.oas.models.info.Info;
  *
  * <p>Documentación automática disponible en:
  * <ul>
- *   <li>UI de Swagger: <b>http://localhost:8083/swagger-ui.html</b></li>
- *   <li>Especificación JSON: <b>http://localhost:8083/v3/api-docs</b></li>
+ *   <li>UI de Swagger: <b>http://localhost:8087/swagger-ui.html</b></li>
+ *   <li>Especificación JSON: <b>http://localhost:8087/v3/api-docs</b></li>
  * </ul>
  */
 @Configuration
