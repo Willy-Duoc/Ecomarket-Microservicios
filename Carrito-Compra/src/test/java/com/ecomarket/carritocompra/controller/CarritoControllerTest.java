@@ -43,7 +43,7 @@ class CarritoControllerTest {
                 new BigDecimal("7980.00"));
         when(carritoService.obtenerCarrito(1L)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/carrito/1"))
+        mockMvc.perform(get("/api/v1/carritos/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(7980.00))
                 .andExpect(jsonPath("$.items[0].nombreProducto").value("Quinoa"));
@@ -55,7 +55,7 @@ class CarritoControllerTest {
                 {"clienteId":1,"productoId":10,"cantidad":0}
                 """;
 
-        mockMvc.perform(post("/api/carrito/items")
+        mockMvc.perform(post("/api/v1/carritos/items")
                         .contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detallesValidacion.cantidad").exists());
@@ -70,7 +70,7 @@ class CarritoControllerTest {
                 {"clienteId":1,"productoId":10,"cantidad":2}
                 """;
 
-        mockMvc.perform(post("/api/carrito/items")
+        mockMvc.perform(post("/api/v1/carritos/items")
                         .contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.status").value(503));

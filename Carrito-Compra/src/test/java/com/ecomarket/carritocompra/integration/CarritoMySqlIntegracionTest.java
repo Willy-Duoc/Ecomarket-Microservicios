@@ -43,7 +43,7 @@ class CarritoMySqlIntegracionTest {
         when(catalogoClient.obtenerProducto(5L))
                 .thenReturn(new ProductoCatalogoDTO(5L, "Arroz Integral", new BigDecimal("2740.00"), 100, "DISPONIBLE"));
 
-        mockMvc.perform(post("/api/carrito/items")
+        mockMvc.perform(post("/api/v1/carritos/items")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"clienteId":50,"productoId":5,"cantidad":3}
@@ -51,7 +51,7 @@ class CarritoMySqlIntegracionTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(8220.00));
 
-        mockMvc.perform(post("/api/compras/confirmar")
+        mockMvc.perform(post("/api/v1/compras/confirmar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"clienteId":50}

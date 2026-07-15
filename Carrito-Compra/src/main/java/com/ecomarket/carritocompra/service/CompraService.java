@@ -48,8 +48,9 @@ public class CompraService {
                     "No se puede confirmar la compra: el carrito del cliente " + clienteId + " está vacío");
         }
 
-        // 1) Confirmar stock definitivo en el catálogo
-        carrito.getItems().forEach(i -> catalogoClient.confirmar(i.getProductoId(), i.getCantidad()));
+        // 1) Regla de negocio: los productos comprados se ELIMINAN del registro
+        //    del catalogo-inventario al confirmar la compra
+        carrito.getItems().forEach(i -> catalogoClient.eliminarProducto(i.getProductoId()));
 
         // 2) Construir el pedido con snapshots (precio histórico congelado)
         Pedido pedido = Pedido.builder()

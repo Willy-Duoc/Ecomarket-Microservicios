@@ -15,8 +15,10 @@ import com.ecomarket.carritocompra.service.CarritoService;
 
 import jakarta.validation.Valid;
 
+// API del carrito. Se accede via gateway: http://localhost:8081/api/v1/carritos
+// Al agregar un producto este servicio llama al Catalogo-Inventario (reserva stock).
 @RestController
-@RequestMapping("/api/carrito")
+@RequestMapping("/api/v1/carritos")
 public class CarritoController {
     
     private final CarritoService carritoService;

@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ecomarket.catalogoinventario.service.InventarioService;
 
+// API del inventario (stock). La consume Carrito-Compra por REST:
+// verificar disponibilidad, reservar (al agregar al carrito) y liberar (al quitar/cancelar).
 @RestController
-@RequestMapping("/api/inventario")
+@RequestMapping("/api/v1/inventario")
 public class InventarioController {
     private final InventarioService inventarioService;
 

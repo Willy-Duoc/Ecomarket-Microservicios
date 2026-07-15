@@ -16,8 +16,10 @@ import com.ecomarket.carritocompra.service.CompraService;
 
 import jakarta.validation.Valid;
 
+// API de compras. Confirmar elimina los productos comprados del Catalogo-Inventario;
+// cancelar restaura stock si el producto aun existe.
 @RestController
-@RequestMapping("/api/compras")
+@RequestMapping("/api/v1/compras")
 public class CompraController {
     private final CompraService compraService;
 

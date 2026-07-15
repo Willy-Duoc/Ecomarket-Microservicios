@@ -33,7 +33,7 @@ class InventarioControllerTest {
     void verificarDisponibilidad_devuelve200yBooleano() throws Exception {
         when(inventarioService.verificarDisponibilidad(1L, 2)).thenReturn(true);
 
-        mockMvc.perform(get("/api/inventario/1/disponibilidad").param("cantidad", "2"))
+        mockMvc.perform(get("/api/v1/inventario/1/disponibilidad").param("cantidad", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.disponible").value(true));
     }
@@ -42,7 +42,7 @@ class InventarioControllerTest {
     void reservar_devuelve200yStockRestante() throws Exception {
         when(inventarioService.reservar(1L, 2)).thenReturn(98);
 
-        mockMvc.perform(post("/api/inventario/1/reservar").param("cantidad", "2"))
+        mockMvc.perform(post("/api/v1/inventario/1/reservar").param("cantidad", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stockRestante").value(98));
     }
@@ -52,7 +52,7 @@ class InventarioControllerTest {
         when(inventarioService.reservar(1L, 5))
                 .thenThrow(new StockInsuficienteException("Stock insuficiente"));
 
-        mockMvc.perform(post("/api/inventario/1/reservar").param("cantidad", "5"))
+        mockMvc.perform(post("/api/v1/inventario/1/reservar").param("cantidad", "5"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
     }
@@ -61,7 +61,7 @@ class InventarioControllerTest {
     void liberar_devuelve200() throws Exception {
         when(inventarioService.liberar(1L, 2)).thenReturn(102);
 
-        mockMvc.perform(post("/api/inventario/1/liberar").param("cantidad", "2"))
+        mockMvc.perform(post("/api/v1/inventario/1/liberar").param("cantidad", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stockRestante").value(102));
     }
@@ -70,7 +70,7 @@ class InventarioControllerTest {
     void confirmar_devuelve200() throws Exception {
         when(inventarioService.confirmar(1L, 2)).thenReturn(true);
 
-        mockMvc.perform(post("/api/inventario/1/confirmar").param("cantidad", "2"))
+        mockMvc.perform(post("/api/v1/inventario/1/confirmar").param("cantidad", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.confirmado").value(true));
     }
@@ -79,7 +79,7 @@ class InventarioControllerTest {
     void ajustarStock_devuelve200() throws Exception {
         when(inventarioService.ajustarStock(1L, 50)).thenReturn(50);
 
-        mockMvc.perform(put("/api/inventario/1/stock").param("nuevaCantidad", "50"))
+        mockMvc.perform(put("/api/v1/inventario/1/stock").param("nuevaCantidad", "50"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stockActual").value(50));
     }
@@ -89,7 +89,7 @@ class InventarioControllerTest {
         when(inventarioService.reservar(99L, 1))
                 .thenThrow(new RecursoNoEncontradoException("Producto no encontrado con id: 99"));
 
-        mockMvc.perform(post("/api/inventario/99/reservar").param("cantidad", "1"))
+        mockMvc.perform(post("/api/v1/inventario/99/reservar").param("cantidad", "1"))
                 .andExpect(status().isNotFound());
     }
 }

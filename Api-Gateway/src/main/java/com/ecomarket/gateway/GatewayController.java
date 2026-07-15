@@ -30,14 +30,17 @@ public class GatewayController {
     private final RestClient restClient;
     private final String catalogoUrl;
     private final String carritoUrl;
+    private final String authUrl;
 
     public GatewayController(
             RestClient gatewayRestClient,
             @Value("${gateway.catalogo-url}") String catalogoUrl,
-            @Value("${gateway.carrito-url}") String carritoUrl) {
+            @Value("${gateway.carrito-url}") String carritoUrl,
+            @Value("${gateway.auth-url}") String authUrl) {
         this.restClient = gatewayRestClient;
         this.catalogoUrl = catalogoUrl;
         this.carritoUrl = carritoUrl;
+        this.authUrl = authUrl;
     }
 
     /** Pagina de informacion del gateway (util para verificar que esta arriba). */
@@ -46,10 +49,11 @@ public class GatewayController {
         return Map.of(
                 "servicio", "EcoMarket API Gateway",
                 "rutas", Map.of(
-                        "/api/catalogo/**", catalogoUrl,
-                        "/api/inventario/**", catalogoUrl,
-                        "/api/carrito/**", carritoUrl,
-                        "/api/compras/**", carritoUrl));
+                        "/api/v1/auth/**", authUrl,
+                        "/api/v1/productos/**", catalogoUrl,
+                        "/api/v1/inventario/**", catalogoUrl,
+                        "/api/v1/carritos/**", carritoUrl,
+                        "/api/v1/compras/**", carritoUrl));
     }
 
     /** Reenvia cualquier peticion /api/** al microservicio que corresponda. */
@@ -89,10 +93,16 @@ public class GatewayController {
 
     /** Elige el microservicio destino segun el prefijo de la ruta. */
     private String resolverDestino(String uri) {
-        if (uri.startsWith("/api/catalogo") || uri.startsWith("/api/inventario")) {
+        // /api/v1/auth/** -> Inicio-Sesion (8082)
+        if (uri.startsWith("/api/v1/auth")) {
+            return authUrl;
+        }
+        // /api/v1/productos/** y /api/v1/inventario/** -> Catalogo-Inventario (8084)
+        if (uri.startsWith("/api/v1/productos") || uri.startsWith("/api/v1/inventario")) {
             return catalogoUrl;
         }
-        if (uri.startsWith("/api/carrito") || uri.startsWith("/api/compras")) {
+        // /api/v1/carritos/** y /api/v1/compras/** -> Carrito-Compra (8083)
+        if (uri.startsWith("/api/v1/carritos") || uri.startsWith("/api/v1/compras")) {
             return carritoUrl;
         }
         return null;

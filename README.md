@@ -1,15 +1,16 @@
 # EcoMarket – Microservicios
 
 Plataforma de e-commerce de productos ecológicos y sostenibles, construida con una
-arquitectura de **microservicios** sobre Spring Boot. Este repositorio contiene dos
+arquitectura de **microservicios** sobre Spring Boot. Este repositorio contiene tres
 microservicios de negocio (cada uno dueño de sus datos) y un **API Gateway** que
 actúa como punto de entrada único:
 
 | Servicio | Puerto | Responsabilidad | Base de datos |
 |---|---|---|---|
-| **Api-Gateway** | 8080 | Punto de entrada único; enruta las peticiones a los microservicios | — (sin BD) |
-| **Catalogo-Inventario** | 8081 | Catálogo de productos y gestión de stock | `ecomarket_catalogo` |
-| **Carrito-Compra** | 8082 | Carrito de compras, pedidos e historial | `ecomarket_carrito` |
+| **Api-Gateway** | 8081 | Punto de entrada único; enruta las peticiones a los microservicios | — (sin BD) |
+| **Inicio-Sesion** | 8082 | Autenticación de clientes con **JWT**: login, logout, cambio de contraseña y correo | `ecomarket_iniciosesion` |
+| **Carrito-Compra** | 8083 | Carrito de compras, pedidos e historial | `ecomarket_carrito` |
+| **Catalogo-Inventario** | 8084 | Catálogo de productos y gestión de stock | `ecomarket_catalogo` |
 
 Cada servicio es **dueño exclusivo de sus datos** y tiene su propia base de datos
 (patrón *Database per Service*). El Carrito nunca accede a la base del Catálogo:
@@ -23,22 +24,23 @@ funcionando aunque el catálogo esté caído.
 
 ### 1.1 Comunicación entre servicios
 
-El cliente (Postman) habla **solo con el API Gateway** (8080), que reenvía cada
+El cliente (Postman) habla **solo con el API Gateway** (8081), que reenvía cada
 petición al microservicio correcto según el prefijo de la ruta. Los microservicios
 se comunican entre sí por REST.
 
 ```
-                    ┌───────────────────────────┐
-   Cliente ───────► │      API Gateway (8080)    │
-   (Postman)        │  /api/catalogo,/inventario │──► Catalogo-Inventario (8081)
-                    │  /api/carrito,/compras      │──► Carrito-Compra (8082)
-                    └───────────────────────────┘
+                    ┌────────────────────────────────┐
+   Cliente ───────► │       API Gateway (8081)        │
+   (Postman)        │  /api/v1/auth                   │──► Inicio-Sesion (8082)
+                    │  /api/v1/productos,/inventario  │──► Catalogo-Inventario (8084)
+                    │  /api/v1/carritos,/compras      │──► Carrito-Compra (8083)
+                    └────────────────────────────────┘
 
                          HTTP / REST (RestClient)
-   ┌─────────────────────┐   GET  /api/catalogo/{id}    ┌──────────────────────────┐
+   ┌─────────────────────┐   GET  /api/v1/productos/{id}    ┌──────────────────────────┐
    │                     │ ───────────────────────────► │                          │
-   │   Carrito-Compra    │   POST /api/inventario/.../  │   Catalogo-Inventario    │
-   │   (puerto 8082)     │        reservar | liberar |  │   (puerto 8081)          │
+   │   Carrito-Compra    │   POST /api/v1/inventario/.../  │   Catalogo-Inventario    │
+   │   (puerto 8083)     │        reservar | liberar |  │   (puerto 8084)          │
    │                     │ ◄─────────────────────────── │                          │
    └─────────┬───────────┘        confirmar             └────────────┬─────────────┘
              │                                                        │
@@ -50,7 +52,7 @@ se comunican entre sí por REST.
 ```
 
 El **Gateway** desacopla al cliente de las direcciones internas: no necesita conocer
-los puertos 8081/8082, solo el 8080. Es un enrutador REST ligero (proxy) hecho con
+los puertos 8084/8083, solo el 8081. Es un enrutador REST ligero (proxy) hecho con
 Spring MVC; en producción se reemplazaría por Spring Cloud Gateway, pero cumple el
 mismo rol de *punto de entrada único*.
 
@@ -58,6 +60,14 @@ El Catálogo no conoce al Carrito (no depende de él). El Carrito sí depende de
 Catálogo, pero a través de una interfaz (`CatalogoClient`) que aísla el dominio de
 los detalles de HTTP. Si el catálogo no responde, el Carrito devuelve **503**
 (servicio no disponible) en vez de un error genérico.
+
+**Inicio-Sesion no crea dependencias síncronas:** emite tokens **JWT firmados**
+(stateless). Ningún microservicio necesita llamar a Inicio-Sesion para operar;
+la validación del token es local (firma HMAC) y el gateway solo enruta.
+
+**Regla de negocio de la compra:** al confirmar la compra, los productos comprados
+**se eliminan del registro** del Catalogo-Inventario (lo hace el Carrito vía
+`DELETE /api/v1/productos/{id}`).
 
 ### 1.2 Arquitectura interna por capas
 
@@ -83,13 +93,28 @@ Ecomarket-Microservicios/
 ├── POSTMAN.md                           # Guía detallada de pruebas en Postman
 ├── EcoMarket.postman_collection.json    # Colección importable en Postman (vía gateway)
 │
-├── Api-Gateway/                         # API Gateway (puerto 8080)
+├── Api-Gateway/                         # API Gateway (puerto 8081)
 │   ├── pom.xml
 │   └── src/main/java/com/ecomarket/gateway/
 │       ├── ApiGatewayApplication.java   # Clase main (arranque)
 │       └── GatewayController.java        # Enruta /api/** a los microservicios
 │
-├── Catalogo-Inventario/                 # Microservicio 1 (puerto 8081)
+├── Inicio-Sesion/                       # Microservicio de autenticación (puerto 8082)
+│   ├── pom.xml                           # Incluye JJWT (JWT) y spring-security-crypto (BCrypt)
+│   └── src/
+│       ├── main/java/com/ecomarket/iniciosesion/
+│       │   ├── InicioSesionApplication.java
+│       │   ├── model/        Cliente.java, Sesion.java
+│       │   ├── repository/   ClienteRepository, SesionRepository
+│       │   ├── dto/          Login/Logout/Validar/CambiarContrasena/CambiarCorreo DTOs
+│       │   ├── security/     JwtUtil.java (genera y valida JWT)
+│       │   ├── service/      AuthService.java
+│       │   ├── controller/   AuthController.java   # /api/v1/auth
+│       │   ├── exception/    GlobalExceptionHandler + excepciones (401/403/404/409)
+│       │   └── config/       CargaClientesIniciales.java  # Seed de 5 clientes
+│       └── test/             8 clases de prueba (unitarias + MockMvc + integración H2)
+│
+├── Catalogo-Inventario/                 # Microservicio 1 (puerto 8084)
 │   ├── pom.xml
 │   ├── mvnw  /  mvnw.cmd                 # Maven Wrapper (no requiere Maven instalado)
 │   └── src/
@@ -117,8 +142,8 @@ Ecomarket-Microservicios/
 │       │   │   │   └── InventarioService.java           # Reservar/liberar/confirmar stock
 │       │   │   │
 │       │   │   ├── controller/
-│       │   │   │   ├── ProductoController.java          # /api/catalogo
-│       │   │   │   └── InventarioController.java        # /api/inventario
+│       │   │   │   ├── ProductoController.java          # /api/v1/productos
+│       │   │   │   └── InventarioController.java        # /api/v1/inventario
 │       │   │   │
 │       │   │   ├── exception/
 │       │   │   │   ├── GlobalExceptionHandler.java      # @RestControllerAdvice
@@ -131,7 +156,7 @@ Ecomarket-Microservicios/
 │       │   │       └── CargaDatosIniciales.java         # Siembra 100 productos al arrancar
 │       │   │
 │       │   └── resources/
-│       │       └── application.properties               # Config MySQL, puerto 8081
+│       │       └── application.properties               # Config MySQL, puerto 8084
 │       │
 │       └── test/
 │           ├── java/com/ecomarket/catalogoinventario/
@@ -148,7 +173,7 @@ Ecomarket-Microservicios/
 │               ├── application.properties                # H2 en memoria (perfil test)
 │               └── application-mysql.properties          # MySQL de pruebas (perfil mysql)
 │
-└── Carrito-Compra/                      # Microservicio 2 (puerto 8082)
+└── Carrito-Compra/                      # Microservicio 2 (puerto 8083)
     ├── pom.xml
     ├── mvnw  /  mvnw.cmd
     └── src/
@@ -192,8 +217,8 @@ Ecomarket-Microservicios/
         │   │   │   └── CompraService.java                # Confirmar/cancelar/historial
         │   │   │
         │   │   ├── controller/
-        │   │   │   ├── CarritoController.java            # /api/carrito
-        │   │   │   └── CompraController.java             # /api/compras
+        │   │   │   ├── CarritoController.java            # /api/v1/carritos
+        │   │   │   └── CompraController.java             # /api/v1/compras
         │   │   │
         │   │   └── exception/
         │   │       ├── GlobalExceptionHandler.java
@@ -204,7 +229,7 @@ Ecomarket-Microservicios/
         │   │       └── CatalogoNoDisponibleException.java # → HTTP 503
         │   │
         │   └── resources/
-        │       └── application.properties                # Config MySQL, puerto 8082, catalogo.base-url
+        │       └── application.properties                # Config MySQL, puerto 8083, catalogo.base-url
         │
         └── test/
             ├── java/com/ecomarket/carritocompra/
@@ -302,7 +327,7 @@ Para saltar las pruebas durante el empaquetado: `./mvnw clean package -DskipTest
 El orden importa: **primero el Catálogo**, luego el Carrito y por último el Gateway
 (cada uno en su propia terminal).
 
-**1) Arrancar el Catálogo (puerto 8081):**
+**1) Arrancar el Catálogo (puerto 8084):**
 ```bash
 cd Catalogo-Inventario
 ./mvnw spring-boot:run
@@ -310,19 +335,28 @@ cd Catalogo-Inventario
 Al iniciar, siembra automáticamente **100 productos** (10 categorías × 10 productos).
 Verás en consola: `Catálogo inicializado con 100 productos.`
 
-**2) Arrancar el Carrito (puerto 8082), en otra terminal:**
+**2) Arrancar Inicio-Sesion (puerto 8082), en otra terminal:**
+```bash
+cd Inicio-Sesion
+./mvnw spring-boot:run
+```
+Al iniciar siembra **5 clientes de prueba** (contraseña `ecomarket123`):
+`ana.torres@ecomarket.cl`, `bruno.rojas@ecomarket.cl`, `carla.munoz@ecomarket.cl`,
+`diego.perez@ecomarket.cl` (ACTIVOS) y `elena.soto@ecomarket.cl` (INACTIVO, para probar el 403).
+
+**3) Arrancar el Carrito (puerto 8083), en otra terminal:**
 ```bash
 cd Carrito-Compra
 ./mvnw spring-boot:run
 ```
 
-**3) Arrancar el API Gateway (puerto 8080), en otra terminal:**
+**4) Arrancar el API Gateway (puerto 8081), en otra terminal:**
 ```bash
 cd Api-Gateway
 ./mvnw spring-boot:run
 ```
-Verifica que está arriba abriendo `http://localhost:8080/` (muestra las rutas).
-A partir de aquí, todas las peticiones se hacen contra el **8080** y el gateway las
+Verifica que está arriba abriendo `http://localhost:8081/` (muestra las rutas).
+A partir de aquí, todas las peticiones se hacen contra el **8081** y el gateway las
 reenvía al microservicio correcto.
 
 Alternativamente, tras `./mvnw clean package`, puedes ejecutar los JAR directamente:
@@ -336,64 +370,74 @@ java -jar target/Api-Gateway-0.0.1-SNAPSHOT.jar
 
 ### 5.1 Endpoints principales
 
-**Catálogo (`http://localhost:8081`):**
+**Inicio-Sesion (`http://localhost:8082` — vía gateway: `http://localhost:8081`):**
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/catalogo` | Lista todos los productos |
-| GET | `/api/catalogo/{id}` | Obtiene un producto por id |
-| GET | `/api/catalogo/buscar?nombre=...` | Busca por nombre |
-| GET | `/api/catalogo/categoria/{categoria}` | Filtra por categoría |
-| POST | `/api/catalogo` | Crea un producto |
-| PUT | `/api/catalogo/{id}` | Actualiza un producto |
-| DELETE | `/api/catalogo/{id}` | Elimina un producto |
-| GET | `/api/inventario/{id}/disponibilidad?cantidad=N` | Verifica stock |
-| POST | `/api/inventario/{id}/reservar?cantidad=N` | Reserva stock |
-| POST | `/api/inventario/{id}/liberar?cantidad=N` | Libera stock |
-| POST | `/api/inventario/{id}/confirmar?cantidad=N` | Confirma consumo de stock |
-| PUT | `/api/inventario/{id}/stock?nuevaCantidad=N` | Ajuste manual de stock |
+| POST | `/api/v1/auth/login` | Inicia sesión (correo + contraseña) y devuelve el JWT |
+| POST | `/api/v1/auth/logout` | Cierra la sesión del token |
+| POST | `/api/v1/auth/validar` | Indica si un token es válido y de qué cliente es |
+| PUT | `/api/v1/auth/cambiar-contrasena` | Cambia la contraseña (actual + nueva + repetir) |
+| PUT | `/api/v1/auth/cambiar-correo` | Cambia el correo (contraseña + nuevo correo) |
 
-**Carrito (`http://localhost:8082`):**
+**Catálogo (`http://localhost:8084`):**
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/carrito/{clienteId}` | Obtiene (o crea) el carrito activo |
-| POST | `/api/carrito/items` | Agrega un producto (body JSON) |
-| DELETE | `/api/carrito/{clienteId}/items/{itemId}` | Elimina una línea |
-| DELETE | `/api/carrito/{clienteId}` | Vacía el carrito |
-| POST | `/api/compras/confirmar` | Confirma la compra (genera pedido) |
-| POST | `/api/compras/{pedidoId}/cancelar` | Cancela un pedido |
-| GET | `/api/compras/historial/{clienteId}` | Historial de pedidos |
+| GET | `/api/v1/productos` | Lista todos los productos |
+| GET | `/api/v1/productos/{id}` | Obtiene un producto por id |
+| GET | `/api/v1/productos/buscar?nombre=...` | Busca por nombre |
+| GET | `/api/v1/productos/categoria/{categoria}` | Filtra por categoría |
+| POST | `/api/v1/productos` | Crea un producto |
+| PUT | `/api/v1/productos/{id}` | Actualiza un producto |
+| DELETE | `/api/v1/productos/{id}` | Elimina un producto |
+| GET | `/api/v1/inventario/{id}/disponibilidad?cantidad=N` | Verifica stock |
+| POST | `/api/v1/inventario/{id}/reservar?cantidad=N` | Reserva stock |
+| POST | `/api/v1/inventario/{id}/liberar?cantidad=N` | Libera stock |
+| POST | `/api/v1/inventario/{id}/confirmar?cantidad=N` | Confirma consumo de stock |
+| PUT | `/api/v1/inventario/{id}/stock?nuevaCantidad=N` | Ajuste manual de stock |
+
+**Carrito (`http://localhost:8083`):**
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/v1/carritos/{clienteId}` | Obtiene (o crea) el carrito activo |
+| POST | `/api/v1/carritos/items` | Agrega un producto (body JSON) |
+| DELETE | `/api/v1/carritos/{clienteId}/items/{itemId}` | Elimina una línea |
+| DELETE | `/api/v1/carritos/{clienteId}` | Vacía el carrito |
+| POST | `/api/v1/compras/confirmar` | Confirma la compra (genera pedido) |
+| POST | `/api/v1/compras/{pedidoId}/cancelar` | Cancela un pedido |
+| GET | `/api/v1/compras/historial/{clienteId}` | Historial de pedidos |
 
 ### 5.2 Flujo de prueba rápido (curl)
 
 ```bash
 # Agregar producto 1 (cantidad 2) al carrito del cliente 1
-curl -X POST http://localhost:8082/api/carrito/items \
+curl -X POST http://localhost:8083/api/v1/carritos/items \
   -H "Content-Type: application/json" \
   -d '{"clienteId":1,"productoId":1,"cantidad":2}'
 
 # Ver el carrito del cliente 1
-curl http://localhost:8082/api/carrito/1
+curl http://localhost:8083/api/v1/carritos/1
 
 # Confirmar la compra
-curl -X POST http://localhost:8082/api/compras/confirmar \
+curl -X POST http://localhost:8083/api/v1/compras/confirmar \
   -H "Content-Type: application/json" \
   -d '{"clienteId":1}'
 
 # Ver el historial de pedidos
-curl http://localhost:8082/api/compras/historial/1
+curl http://localhost:8083/api/v1/compras/historial/1
 ```
 
 > Los mismos endpoints funcionan a través del **gateway** cambiando el host y puerto
-> por `http://localhost:8080` (p. ej. `GET http://localhost:8080/api/catalogo`).
+> por `http://localhost:8081` (p. ej. `GET http://localhost:8081/api/v1/productos`).
 
 ### 5.3 Pruebas en Postman (vía gateway)
 
 Con los tres servicios arriba, importa la colección en Postman:
 
 1. **File ▸ Import** y selecciona `EcoMarket.postman_collection.json`.
-2. La colección ya trae la variable `gateway = http://localhost:8080` y datos de prueba.
+2. La colección ya trae la variable `gateway = http://localhost:8081` y datos de prueba.
 3. Abre la carpeta **"5. Flujo E2E"** y ejecuta las peticiones en orden: demuestra cómo,
    al agregar al carrito, el stock baja en el catálogo, y cómo al cancelar el pedido se
    restaura — todo a través del gateway.

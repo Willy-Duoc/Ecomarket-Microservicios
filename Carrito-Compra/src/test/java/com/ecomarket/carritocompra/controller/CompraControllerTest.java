@@ -42,7 +42,7 @@ class CompraControllerTest {
     void confirmar_devuelve200yPedido() throws Exception {
         when(compraService.confirmarCompra(1L)).thenReturn(pedido(EstadoPedido.CONFIRMADO));
 
-        mockMvc.perform(post("/api/compras/confirmar")
+        mockMvc.perform(post("/api/v1/compras/confirmar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"clienteId":1}
@@ -56,7 +56,7 @@ class CompraControllerTest {
         when(compraService.confirmarCompra(1L))
                 .thenThrow(new CarritoVacioException("El carrito esta vacio"));
 
-        mockMvc.perform(post("/api/compras/confirmar")
+        mockMvc.perform(post("/api/v1/compras/confirmar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"clienteId":1}
@@ -66,7 +66,7 @@ class CompraControllerTest {
 
     @Test
     void confirmar_sinClienteId_devuelve400() throws Exception {
-        mockMvc.perform(post("/api/compras/confirmar")
+        mockMvc.perform(post("/api/v1/compras/confirmar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
@@ -77,7 +77,7 @@ class CompraControllerTest {
     void cancelar_devuelve200yPedidoCancelado() throws Exception {
         when(compraService.cancelarPedido(1L)).thenReturn(pedido(EstadoPedido.CANCELADO));
 
-        mockMvc.perform(post("/api/compras/1/cancelar"))
+        mockMvc.perform(post("/api/v1/compras/1/cancelar"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("CANCELADO"));
     }
@@ -87,7 +87,7 @@ class CompraControllerTest {
         when(compraService.cancelarPedido(99L))
                 .thenThrow(new RecursoNoEncontradoException("Pedido no encontrado con id: 99"));
 
-        mockMvc.perform(post("/api/compras/99/cancelar"))
+        mockMvc.perform(post("/api/v1/compras/99/cancelar"))
                 .andExpect(status().isNotFound());
     }
 
@@ -95,7 +95,7 @@ class CompraControllerTest {
     void historial_devuelve200yLista() throws Exception {
         when(compraService.historial(1L)).thenReturn(List.of(pedido(EstadoPedido.CONFIRMADO)));
 
-        mockMvc.perform(get("/api/compras/historial/1"))
+        mockMvc.perform(get("/api/v1/compras/historial/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1));
     }

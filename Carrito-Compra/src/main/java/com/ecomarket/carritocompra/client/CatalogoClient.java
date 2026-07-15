@@ -16,6 +16,10 @@ public interface CatalogoClient {
     /** Libera (devuelve) stock previamente reservado. */
     void liberar(Long productoId, int cantidad);
 
-    /** Confirma el consumo definitivo de stock al cerrar la compra. */
-    void confirmar(Long productoId, int cantidad);
+    /**
+     * Elimina el producto del registro del catalogo-inventario.
+     * Regla de negocio: al confirmar la compra, los productos comprados
+     * se eliminan del catalogo.
+     */
+    void eliminarProducto(Long productoId);
 }

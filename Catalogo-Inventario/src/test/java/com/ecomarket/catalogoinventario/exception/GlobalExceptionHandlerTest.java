@@ -23,7 +23,7 @@ class GlobalExceptionHandlerTest {
 
     private WebRequest request() {
         WebRequest req = mock(WebRequest.class);
-        when(req.getDescription(false)).thenReturn("uri=/api/catalogo/1");
+        when(req.getDescription(false)).thenReturn("uri=/api/v1/productos/1");
         return req;
     }
 
@@ -34,7 +34,7 @@ class GlobalExceptionHandlerTest {
 
         assertThat(resp.getStatusCode().value()).isEqualTo(404);
         assertThat(resp.getBody().mensaje()).isEqualTo("no existe");
-        assertThat(resp.getBody().path()).isEqualTo("/api/catalogo/1");
+        assertThat(resp.getBody().path()).isEqualTo("/api/v1/productos/1");
     }
 
     @Test

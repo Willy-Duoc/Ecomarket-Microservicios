@@ -38,7 +38,7 @@ class CatalogoMySqlIntegracionTest {
                 {"sku":"MYSQL-01","nombre":"Producto MySQL","descripcion":"d",
                  "categoria":"RECICLAJE","precio":4990.00,"stock":15}
                 """;
-        String respuesta = mockMvc.perform(post("/api/catalogo")
+        String respuesta = mockMvc.perform(post("/api/v1/productos")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.sku").value("MYSQL-01"))
@@ -47,16 +47,16 @@ class CatalogoMySqlIntegracionTest {
         Long id = com.jayway.jsonpath.JsonPath.parse(respuesta).read("$.id", Long.class);
 
         // READ
-        mockMvc.perform(get("/api/catalogo/" + id))
+        mockMvc.perform(get("/api/v1/productos/" + id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("Producto MySQL"));
 
         // DELETE
-        mockMvc.perform(delete("/api/catalogo/" + id))
+        mockMvc.perform(delete("/api/v1/productos/" + id))
                 .andExpect(status().isNoContent());
 
         // READ tras borrar -> 404
-        mockMvc.perform(get("/api/catalogo/" + id))
+        mockMvc.perform(get("/api/v1/productos/" + id))
                 .andExpect(status().isNotFound());
     }
 }

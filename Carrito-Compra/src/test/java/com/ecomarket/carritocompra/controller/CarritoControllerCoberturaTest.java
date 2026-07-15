@@ -46,7 +46,7 @@ class CarritoControllerCoberturaTest {
                 new BigDecimal("5180.00"));
         when(carritoService.agregarProducto(anyLong(), anyLong(), anyInt())).thenReturn(conItem);
 
-        mockMvc.perform(post("/api/carrito/items")
+        mockMvc.perform(post("/api/v1/carritos/items")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"clienteId":1,"productoId":5,"cantidad":2}
@@ -60,7 +60,7 @@ class CarritoControllerCoberturaTest {
     void eliminarItem_devuelve200() throws Exception {
         when(carritoService.eliminarItem(1L, 5L)).thenReturn(carritoVacio());
 
-        mockMvc.perform(delete("/api/carrito/1/items/5"))
+        mockMvc.perform(delete("/api/v1/carritos/1/items/5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray());
     }
@@ -69,7 +69,7 @@ class CarritoControllerCoberturaTest {
     void vaciar_devuelve200() throws Exception {
         when(carritoService.vaciarCarrito(1L)).thenReturn(carritoVacio());
 
-        mockMvc.perform(delete("/api/carrito/1"))
+        mockMvc.perform(delete("/api/v1/carritos/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(0));
     }

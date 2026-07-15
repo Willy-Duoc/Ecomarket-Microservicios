@@ -21,8 +21,11 @@ import com.ecomarket.catalogoinventario.service.ProductoService;
 
 import jakarta.validation.Valid;
 
+// API del catalogo de productos. Se accede via gateway: http://localhost:8081/api/v1/productos
+// GET lista/busca, POST crea, PUT actualiza, DELETE elimina (tambien lo invoca
+// Carrito-Compra al confirmar una compra).
 @RestController
-@RequestMapping("/api/catalogo")
+@RequestMapping("/api/v1/productos")
 public class ProductoController {
     private final ProductoService productoService;
 
@@ -55,7 +58,7 @@ public class ProductoController {
     public ResponseEntity<ProductoResponseDTO> crear(@Valid @RequestBody ProductoRequestDTO dto) {
         ProductoResponseDTO creado = productoService.crear(dto);
         return ResponseEntity
-                .created(URI.create("/api/catalogo/" + creado.id()))
+                .created(URI.create("/api/v1/productos/" + creado.id()))
                 .body(creado);
     }
 

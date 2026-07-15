@@ -72,7 +72,8 @@ class CompraServiceTest {
 
         PedidoResponseDTO resp = compraService.confirmarCompra(1L);
 
-        verify(catalogoClient).confirmar(10L, 2);
+        // Regla de negocio: el producto comprado se elimina del catalogo
+        verify(catalogoClient).eliminarProducto(10L);
         assertThat(resp.estado()).isEqualTo(EstadoPedido.CONFIRMADO);
         assertThat(resp.total()).isEqualByComparingTo("7980.00");
         assertThat(carrito.getActivo()).isFalse();

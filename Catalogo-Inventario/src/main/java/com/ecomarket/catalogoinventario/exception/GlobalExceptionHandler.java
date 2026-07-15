@@ -69,7 +69,7 @@ public class GlobalExceptionHandler {
     }
 
     private String extraerPath(WebRequest request) {
-        // "uri=/api/catalogo/5" → "/api/catalogo/5"
+        // "uri=/api/v1/productos/5" → "/api/v1/productos/5"
         return request.getDescription(false).replace("uri=", "");
     }
 }

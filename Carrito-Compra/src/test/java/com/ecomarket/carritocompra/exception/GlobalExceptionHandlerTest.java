@@ -23,7 +23,7 @@ class GlobalExceptionHandlerTest {
 
     private WebRequest request() {
         WebRequest req = mock(WebRequest.class);
-        when(req.getDescription(false)).thenReturn("uri=/api/carrito/1");
+        when(req.getDescription(false)).thenReturn("uri=/api/v1/carritos/1");
         return req;
     }
 
@@ -32,7 +32,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<ErrorResponse> resp =
                 handler.noEncontrado(new RecursoNoEncontradoException("no existe"), request());
         assertThat(resp.getStatusCode().value()).isEqualTo(404);
-        assertThat(resp.getBody().path()).isEqualTo("/api/carrito/1");
+        assertThat(resp.getBody().path()).isEqualTo("/api/v1/carritos/1");
     }
 
     @Test

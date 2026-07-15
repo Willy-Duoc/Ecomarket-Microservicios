@@ -23,7 +23,7 @@ public class CatalogoRestClient implements CatalogoClient {
     public ProductoCatalogoDTO obtenerProducto(Long productoId) {
         try {
             return restClient.get()
-                    .uri("/api/catalogo/{id}", productoId)
+                    .uri("/api/v1/productos/{id}", productoId)
                     .retrieve()
                     .body(ProductoCatalogoDTO.class);
         } catch (HttpClientErrorException.NotFound e) {
@@ -38,7 +38,7 @@ public class CatalogoRestClient implements CatalogoClient {
     public boolean verificarDisponibilidad(Long productoId, int cantidad) {
         try {
             DisponibilidadDTO resp = restClient.get()
-                    .uri(b -> b.path("/api/inventario/{id}/disponibilidad")
+                    .uri(b -> b.path("/api/v1/inventario/{id}/disponibilidad")
                               .queryParam("cantidad", cantidad).build(productoId))
                     .retrieve()
                     .body(DisponibilidadDTO.class);
@@ -54,7 +54,7 @@ public class CatalogoRestClient implements CatalogoClient {
     public void reservar(Long productoId, int cantidad) {
         try {
             restClient.post()
-                    .uri(b -> b.path("/api/inventario/{id}/reservar")
+                    .uri(b -> b.path("/api/v1/inventario/{id}/reservar")
                               .queryParam("cantidad", cantidad).build(productoId))
                     .retrieve()
                     .toBodilessEntity();
@@ -72,25 +72,30 @@ public class CatalogoRestClient implements CatalogoClient {
     public void liberar(Long productoId, int cantidad) {
         try {
             restClient.post()
-                    .uri(b -> b.path("/api/inventario/{id}/liberar")
+                    .uri(b -> b.path("/api/v1/inventario/{id}/liberar")
                               .queryParam("cantidad", cantidad).build(productoId))
                     .retrieve()
                     .toBodilessEntity();
+        } catch (HttpClientErrorException.NotFound e) {
+            // El producto ya fue eliminado del catalogo (compra confirmada):
+            // no hay stock que restaurar, se ignora para que cancelar sea seguro.
         } catch (ResourceAccessException e) {
             throw new CatalogoNoDisponibleException("No se pudo contactar al catálogo (liberar)");
         }
     }
 
     @Override
-    public void confirmar(Long productoId, int cantidad) {
+    public void eliminarProducto(Long productoId) {
+        // DELETE /api/v1/productos/{id}: la compra elimina el producto del catalogo
         try {
-            restClient.post()
-                    .uri(b -> b.path("/api/inventario/{id}/confirmar")
-                              .queryParam("cantidad", cantidad).build(productoId))
+            restClient.delete()
+                    .uri("/api/v1/productos/{id}", productoId)
                     .retrieve()
                     .toBodilessEntity();
+        } catch (HttpClientErrorException.NotFound e) {
+            // Ya no existia: la operacion es idempotente, se ignora.
         } catch (ResourceAccessException e) {
-            throw new CatalogoNoDisponibleException("No se pudo contactar al catálogo (confirmar)");
+            throw new CatalogoNoDisponibleException("No se pudo contactar al catálogo (eliminar producto)");
         }
     }
 

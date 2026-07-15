@@ -29,7 +29,7 @@ class CatalogoIntegracionH2Test {
 
     @Test
     void listar_devuelveCatalogoSembrado() throws Exception {
-        mockMvc.perform(get("/api/catalogo"))
+        mockMvc.perform(get("/api/v1/productos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].sku").value("ALI-01"));
     }
@@ -41,7 +41,7 @@ class CatalogoIntegracionH2Test {
                  "categoria":"ALIMENTOS_ORGANICOS","precio":1000.00,"stock":10}
                 """;
 
-        mockMvc.perform(post("/api/catalogo")
+        mockMvc.perform(post("/api/v1/productos")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
@@ -51,23 +51,23 @@ class CatalogoIntegracionH2Test {
     @Test
     void reservarStock_descuentaEnLaBaseDeDatos() throws Exception {
         // Producto 1 = ALI-01, stock inicial 100 (sembrado)
-        mockMvc.perform(post("/api/inventario/1/reservar").param("cantidad", "5"))
+        mockMvc.perform(post("/api/v1/inventario/1/reservar").param("cantidad", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stockRestante").value(95));
 
-        mockMvc.perform(get("/api/catalogo/1"))
+        mockMvc.perform(get("/api/v1/productos/1"))
                 .andExpect(jsonPath("$.stock").value(95));
     }
 
     @Test
     void reservar_masDelStock_devuelve409() throws Exception {
-        mockMvc.perform(post("/api/inventario/1/reservar").param("cantidad", "100000"))
+        mockMvc.perform(post("/api/v1/inventario/1/reservar").param("cantidad", "100000"))
                 .andExpect(status().isConflict());
     }
 
     @Test
     void obtenerInexistente_devuelve404() throws Exception {
-        mockMvc.perform(get("/api/catalogo/999999"))
+        mockMvc.perform(get("/api/v1/productos/999999"))
                 .andExpect(status().isNotFound());
     }
 }

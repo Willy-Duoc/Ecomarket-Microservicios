@@ -47,7 +47,7 @@ class ProductoControllerCoberturaTest {
     void listar_devuelve200yLista() throws Exception {
         when(productoService.listarTodos()).thenReturn(List.of(dto()));
 
-        mockMvc.perform(get("/api/catalogo"))
+        mockMvc.perform(get("/api/v1/productos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].sku").value("ALI-01"));
     }
@@ -56,7 +56,7 @@ class ProductoControllerCoberturaTest {
     void buscar_devuelve200() throws Exception {
         when(productoService.buscarPorNombre("quinoa")).thenReturn(List.of(dto()));
 
-        mockMvc.perform(get("/api/catalogo/buscar").param("nombre", "quinoa"))
+        mockMvc.perform(get("/api/v1/productos/buscar").param("nombre", "quinoa"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nombre").value("Quinoa Organica"));
     }
@@ -66,7 +66,7 @@ class ProductoControllerCoberturaTest {
         when(productoService.listarPorCategoria(eq(CategoriaProducto.ALIMENTOS_ORGANICOS)))
                 .thenReturn(List.of(dto()));
 
-        mockMvc.perform(get("/api/catalogo/categoria/ALIMENTOS_ORGANICOS"))
+        mockMvc.perform(get("/api/v1/productos/categoria/ALIMENTOS_ORGANICOS"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1));
     }
@@ -79,7 +79,7 @@ class ProductoControllerCoberturaTest {
                 {"sku":"ALI-01","nombre":"Quinoa Organica","categoria":"ALIMENTOS_ORGANICOS","precio":3990.00,"stock":50}
                 """;
 
-        mockMvc.perform(put("/api/catalogo/1")
+        mockMvc.perform(put("/api/v1/productos/1")
                         .contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1));
@@ -89,7 +89,7 @@ class ProductoControllerCoberturaTest {
     void eliminar_devuelve204() throws Exception {
         doNothing().when(productoService).eliminar(1L);
 
-        mockMvc.perform(delete("/api/catalogo/1"))
+        mockMvc.perform(delete("/api/v1/productos/1"))
                 .andExpect(status().isNoContent());
     }
 }

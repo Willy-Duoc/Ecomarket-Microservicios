@@ -52,27 +52,27 @@ class CarritoIntegracionH2Test {
                 {"clienteId":1,"productoId":5,"cantidad":2}
                 """;
 
-        mockMvc.perform(post("/api/carrito/items")
+        mockMvc.perform(post("/api/v1/carritos/items")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].nombreProducto").value("Arroz Integral"))
                 .andExpect(jsonPath("$.total").value(5480.00));
 
-        mockMvc.perform(get("/api/carrito/1"))
+        mockMvc.perform(get("/api/v1/carritos/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].cantidad").value(2));
     }
 
     @Test
     void confirmarCompra_generaPedido() throws Exception {
-        mockMvc.perform(post("/api/carrito/items")
+        mockMvc.perform(post("/api/v1/carritos/items")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"clienteId":2,"productoId":5,"cantidad":1}
                                 """))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/compras/confirmar")
+        mockMvc.perform(post("/api/v1/compras/confirmar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"clienteId":2}
@@ -86,7 +86,7 @@ class CarritoIntegracionH2Test {
     void confirmar_carritoVacio_devuelve409() throws Exception {
         when(catalogoClient.obtenerProducto(anyLong())).thenReturn(null);
         // Cliente 3 sin items
-        mockMvc.perform(post("/api/compras/confirmar")
+        mockMvc.perform(post("/api/v1/compras/confirmar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"clienteId":3}

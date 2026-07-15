@@ -42,7 +42,7 @@ class ProductoControllerTest {
                 50, null, EstadoProducto.DISPONIBLE, null);
         when(productoService.obtenerPorId(1L)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/catalogo/1"))
+        mockMvc.perform(get("/api/v1/productos/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.sku").value("ALI-01"));
@@ -53,7 +53,7 @@ class ProductoControllerTest {
         when(productoService.obtenerPorId(99L))
                 .thenThrow(new RecursoNoEncontradoException("Producto no encontrado con id: 99"));
 
-        mockMvc.perform(get("/api/catalogo/99"))
+        mockMvc.perform(get("/api/v1/productos/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
@@ -64,7 +64,7 @@ class ProductoControllerTest {
                 {"sku":"","nombre":"","categoria":"ALIMENTOS_ORGANICOS","precio":-5,"stock":-1}
                 """;
 
-        mockMvc.perform(post("/api/catalogo")
+        mockMvc.perform(post("/api/v1/productos")
                         .contentType(MediaType.APPLICATION_JSON).content(jsonInvalido))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detallesValidacion").exists());
@@ -81,7 +81,7 @@ class ProductoControllerTest {
                 {"sku":"ALI-09","nombre":"Azucar de Coco","categoria":"ALIMENTOS_ORGANICOS","precio":2990.00,"stock":30}
                 """;
 
-        mockMvc.perform(post("/api/catalogo")
+        mockMvc.perform(post("/api/v1/productos")
                         .contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(5));
