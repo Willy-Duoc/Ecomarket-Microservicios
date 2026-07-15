@@ -11,8 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 
 /**
  * TIPO 3 - Integracion con H2: usa los 5 clientes sembrados por el seed real.
@@ -24,9 +23,6 @@ class AuthIntegracionH2Test {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Test
     void flujoCompleto_loginValidarLogout() throws Exception {
@@ -40,8 +36,8 @@ class AuthIntegracionH2Test {
                 .andExpect(jsonPath("$.token").exists())
                 .andReturn().getResponse().getContentAsString();
 
-        JsonNode json = objectMapper.readTree(respuesta);
-        String token = json.get("token").asText();
+        // Extraemos el token con JsonPath (incluido en spring-boot-starter-test)
+        String token = JsonPath.read(respuesta, "$.token");
 
         // 2) El token es valido mientras la sesion este activa
         mockMvc.perform(post("/api/v1/auth/validar")

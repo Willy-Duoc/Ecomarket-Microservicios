@@ -1,4 +1,9 @@
-# EcoMarket – Microservicios
+# Ecomarket SPA · E-commerce
+
+**Autor:** Williams Contreras  
+**Asignatura:** Desarrollo Fullstack 1
+
+---
 
 Plataforma de e-commerce de productos ecológicos y sostenibles, construida con una
 arquitectura de **microservicios** sobre Spring Boot. Este repositorio contiene tres
@@ -29,26 +34,29 @@ petición al microservicio correcto según el prefijo de la ruta. Los microservi
 se comunican entre sí por REST.
 
 ```
-                    ┌────────────────────────────────┐
-   Cliente ───────► │       API Gateway (8081)        │
-   (Postman)        │  /api/v1/auth                   │──► Inicio-Sesion (8082)
-                    │  /api/v1/productos,/inventario  │──► Catalogo-Inventario (8084)
-                    │  /api/v1/carritos,/compras      │──► Carrito-Compra (8083)
-                    └────────────────────────────────┘
-
-                         HTTP / REST (RestClient)
-   ┌─────────────────────┐   GET  /api/v1/productos/{id}    ┌──────────────────────────┐
-   │                     │ ───────────────────────────► │                          │
-   │   Carrito-Compra    │   POST /api/v1/inventario/.../  │   Catalogo-Inventario    │
-   │   (puerto 8083)     │        reservar | liberar |  │   (puerto 8084)          │
-   │                     │ ◄─────────────────────────── │                          │
-   └─────────┬───────────┘        confirmar             └────────────┬─────────────┘
-             │                                                        │
-     ┌───────▼────────┐                                      ┌────────▼─────────┐
-     │ MySQL          │                                      │ MySQL            │
-     │ ecomarket_     │                                      │ ecomarket_       │
-     │ carrito        │                                      │ catalogo         │
-     └────────────────┘                                      └──────────────────┘
+                          Cliente  (Postman / navegador)
+                                        │
+                                        ▼
+                        ┌───────────────────────────────┐
+                        │     API Gateway   ·   :8081    │   ← punto de entrada único
+                        └───────────────┬───────────────┘
+           ┌────────────────────────────┼────────────────────────────┐
+           │                            │                            │
+      /api/v1/auth             /api/v1/carritos              /api/v1/productos
+           │                   /api/v1/compras               /api/v1/inventario
+           ▼                            ▼                            ▼
+ ┌───────────────────┐       ┌───────────────────┐       ┌────────────────────┐
+ │   Inicio-Sesion   │       │   Carrito-Compra  │       │ Catalogo-Inventario│
+ │      :8082        │       │      :8083        │       │       :8084        │
+ │   JWT · login     │       │ carrito · pedidos │       │  productos · stock │
+ └─────────┬─────────┘       └─────────┬─────────┘       └─────────┬──────────┘
+           │                           │   REST: reservar /        │
+           │                           │   liberar / eliminar ───► │
+           ▼                           ▼                           ▼
+    ┌─────────────┐            ┌─────────────┐            ┌─────────────┐
+    │    MySQL    │            │    MySQL    │            │    MySQL    │
+    │ iniciosesion│            │   carrito   │            │   catalogo  │
+    └─────────────┘            └─────────────┘            └─────────────┘
 ```
 
 El **Gateway** desacopla al cliente de las direcciones internas: no necesita conocer
@@ -444,6 +452,23 @@ Con los tres servicios arriba, importa la colección en Postman:
 
 La guía paso a paso de cada endpoint (con cuerpos y respuestas de ejemplo) está en
 **[POSTMAN.md](POSTMAN.md)**.
+
+---
+
+## 5.4 Documentación Swagger / OpenAPI
+
+Cada microservicio expone su documentación **interactiva** con **springdoc-openapi**.
+Con el servicio levantado, abre en el navegador:
+
+| Servicio | Swagger UI | Especificación JSON |
+|---|---|---|
+| Inicio-Sesion | http://localhost:8082/swagger-ui.html | http://localhost:8082/v3/api-docs |
+| Carrito-Compra | http://localhost:8083/swagger-ui.html | http://localhost:8083/v3/api-docs |
+| Catalogo-Inventario | http://localhost:8084/swagger-ui.html | http://localhost:8084/v3/api-docs |
+
+Desde la UI puedes ver la descripción de cada endpoint (`@Operation`), sus parámetros,
+el esquema de request/response (generado a partir de los DTOs) y **probarlos** con
+*Try it out*. La documentación se genera automáticamente y se mantiene coherente con el código.
 
 ---
 

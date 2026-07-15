@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.ecomarket.carritocompra.dto.AgregarItemRequestDTO;
 import com.ecomarket.carritocompra.dto.CarritoResponseDTO;
@@ -17,6 +19,7 @@ import jakarta.validation.Valid;
 
 // API del carrito. Se accede via gateway: http://localhost:8081/api/v1/carritos
 // Al agregar un producto este servicio llama al Catalogo-Inventario (reserva stock).
+@Tag(name = "Carrito", description = "Carrito de compras del cliente")
 @RestController
 @RequestMapping("/api/v1/carritos")
 public class CarritoController {
@@ -34,6 +37,7 @@ public class CarritoController {
      * @return 200 con el carrito y su total.
      */
     @GetMapping("/{clienteId}")
+    @Operation(summary = "Obtiene (o crea) el carrito activo del cliente")
     public ResponseEntity<CarritoResponseDTO> obtener(@PathVariable Long clienteId) {
         return ResponseEntity.ok(carritoService.obtenerCarrito(clienteId));
     }
@@ -45,6 +49,7 @@ public class CarritoController {
      *         409 sin stock; 503 catálogo no disponible; 400 datos inválidos.
      */
     @PostMapping("/items")
+    @Operation(summary = "Agrega un producto al carrito y reserva stock (503 si el catálogo no responde)")
     public ResponseEntity<CarritoResponseDTO> agregar(@Valid @RequestBody AgregarItemRequestDTO dto) {
         return ResponseEntity.ok(
                 carritoService.agregarProducto(dto.clienteId(), dto.productoId(), dto.cantidad()));
@@ -57,6 +62,7 @@ public class CarritoController {
      * @return 200 con el carrito actualizado; 404 si el item no existe.
      */
     @DeleteMapping("/{clienteId}/items/{itemId}")
+    @Operation(summary = "Elimina una línea del carrito y libera su stock")
     public ResponseEntity<CarritoResponseDTO> eliminarItem(
             @PathVariable Long clienteId, @PathVariable Long itemId) {
         return ResponseEntity.ok(carritoService.eliminarItem(clienteId, itemId));
@@ -68,6 +74,7 @@ public class CarritoController {
      * @return 200 con el carrito vacío.
      */
     @DeleteMapping("/{clienteId}")
+    @Operation(summary = "Vacía el carrito y libera todo el stock reservado")
     public ResponseEntity<CarritoResponseDTO> vaciar(@PathVariable Long clienteId) {
         return ResponseEntity.ok(carritoService.vaciarCarrito(clienteId));
     }

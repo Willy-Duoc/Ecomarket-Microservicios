@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.ecomarket.carritocompra.dto.ConfirmarCompraRequestDTO;
 import com.ecomarket.carritocompra.dto.PedidoResponseDTO;
@@ -18,6 +20,7 @@ import jakarta.validation.Valid;
 
 // API de compras. Confirmar elimina los productos comprados del Catalogo-Inventario;
 // cancelar restaura stock si el producto aun existe.
+@Tag(name = "Compras", description = "Confirmación de compra, cancelación e historial")
 @RestController
 @RequestMapping("/api/v1/compras")
 public class CompraController {
@@ -34,6 +37,7 @@ public class CompraController {
      *         503 si el catálogo no está disponible.
      */
     @PostMapping("/confirmar")
+    @Operation(summary = "Confirma la compra: genera el pedido y elimina del catálogo los productos comprados")
     public ResponseEntity<PedidoResponseDTO> confirmar(@Valid @RequestBody ConfirmarCompraRequestDTO dto) {
         return ResponseEntity.ok(compraService.confirmarCompra(dto.clienteId()));
     }
@@ -44,6 +48,7 @@ public class CompraController {
      * @return 200 con el pedido cancelado; 404 si el pedido no existe.
      */
     @PostMapping("/{pedidoId}/cancelar")
+    @Operation(summary = "Cancela un pedido y restaura el stock si el producto aún existe")
     public ResponseEntity<PedidoResponseDTO> cancelar(@PathVariable Long pedidoId) {
         return ResponseEntity.ok(compraService.cancelarPedido(pedidoId));
     }
@@ -54,6 +59,7 @@ public class CompraController {
      * @return 200 con la lista de pedidos (posiblemente vacía).
      */
     @GetMapping("/historial/{clienteId}")
+    @Operation(summary = "Devuelve el historial de pedidos del cliente")
     public ResponseEntity<List<PedidoResponseDTO>> historial(@PathVariable Long clienteId) {
         return ResponseEntity.ok(compraService.historial(clienteId));
     }
